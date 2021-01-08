@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--声明Controller和其它web相关的对象-->
+
+    <!--声明组件扫描器-->
+    <context:component-scan base-package="com.zh.crm.workbench.controller;com.zh.crm.settings.controller"/>
+    <!--声明springmvc框架中的视图解析器，帮助开发人员设置视图文件路径-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+
+
+    <!--第一种处理静态资源的方式
+
+        需要在springmvc配置文件加入<mvc:default-servlet-handler>
+        原理是：加入这个标签，框架会创建控制器对象DefaultServletHttpRequestHandler（类似我们自己创建的Controller）
+        DefaultServletHttpRequestHandler 这个对象可以吧接受的请求转发给tomcat的default这个servlet
+
+        <mvc:default-servlet-handler/>
+    -->
+    <!--第二种处理静态资源的方法
+        mvc:resources 加入后框架会创建ResourceHttpRequestHandler这个处理器对象
+        让这个对象处理静态资源的访问，不依赖tomcat服务器
+        mapping：访问静态资源uri地址视同通配符 **
+        location：静态资源在你的项目中的目录位置
+    -->
+    <mvc:resources mapping="/image/**" location="/image/"/>
+    <mvc:resources mapping="/js/**" location="/js/"/>
+    <!--声明拦截器-->
+    <mvc:interceptors>
+         <mvc:interceptor>
+             <mvc:mapping path="/**"/>
+              <!--需排除拦截的地址-->
+            <mvc:exclude-mapping path="/js/**"/>
+            <mvc:exclude-mapping path="/image/**"/>
+            <bean class="com.zh.crm.handler.LoginInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!--注册驱动-->
+    <mvc:annotation-driven/>
+</beans>
