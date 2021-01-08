@@ -51,10 +51,12 @@ public class UserController {
         request.getSession().setAttribute("USER_SESSION",null);
         return "redirect:/login.jsp";
     }
+
     @RequestMapping("getUserList")
     @ResponseBody
-    public List<User> getUserList(){
+    public JsonResult getUserList(){
         List<User> users =service.getUserList();
-        return users;
+        JsonResult jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"success",users);
+        return jsonResult;
     }
 }

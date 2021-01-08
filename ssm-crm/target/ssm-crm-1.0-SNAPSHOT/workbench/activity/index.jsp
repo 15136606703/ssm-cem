@@ -64,7 +64,6 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 
 
 		$("#saveBtn").click(function () {
-
             $.ajax({
                 url:"workbench/activity/save.do",
 				data:{
@@ -79,7 +78,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                 dataType:"json",
                 success:function (data) {
 
-                    if (data.success){
+                    if (data.state ==1){
 
                         //添加成功刷新列表
                         /*
@@ -105,7 +104,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 						//关闭模态窗口
                         $("#createActivityModal").modal("hide");
                     }else{
-                        alert("添加失败")
+                        alert(data.message)
                     }
                 }
             })
@@ -280,7 +279,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
         $("#search-endDate").val($.trim($("#hidden-endDate").val()));
 
         $.ajax({
-            url:"workbench/activity/pageList.do",
+            url:"activity/getActivePageList",
             data:{
                 "pageNum":pageNum,
                 "pageSize":pageSize,
@@ -292,9 +291,9 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
             type:"get",
             dataType:"json",
             success:function (data) {
-
+					var info = data.data;
                     var html = "";
-                    $.each(data.dataList,function (i,n) {''
+                    $.each(info.dataList,function (i,n) {''
 ''
 						html+='<tr class="active"> '
 						html+='<td><input type="checkbox" name="xz" value="'+n.id+'" /></td> '
@@ -307,7 +306,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 					$("#activityBody").html(html);
                     //数据处理完毕后结合分页插件
                 //计算总页数
-                var totalPages = data.total%pageSize==0?data.total/pageSize:parseInt(data.total/pageSize)+1;
+                var totalPages = info.total%pageSize==0?info.total/pageSize:parseInt(info.total/pageSize)+1;
 
                 //数据处理完毕后，结合分页查询，对前端展现分页信息
                 $("#activityPage").bs_pagination({
@@ -315,7 +314,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                     rowsPerPage: pageSize, // 每页显示的记录条数
                     maxRowsPerPage: 20, // 每页最多显示的记录条数
                     totalPages: totalPages, // 总页数
-                    totalRows: data.total, // 总记录条数
+                    totalRows: info.total, // 总记录条数
 
                     visiblePageLinks: 3, // 显示几个卡片
 
