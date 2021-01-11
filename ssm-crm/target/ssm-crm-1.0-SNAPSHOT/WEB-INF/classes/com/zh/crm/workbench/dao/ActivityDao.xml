@@ -24,19 +24,7 @@
         where  a.id = #{id}
     </select>
 
-    <update id="update">
-        update tbl_activity set
-            owner = #{owner},
-            name = #{name},
-            startDate= #{startDate},
-            endDate= #{endDate},
-            cost= #{cost},
-            description= #{description},
-            editTime= #{editTime},
-            editBy= #{editBy}
-            WHERE id=#{id}
 
-    </update>
 
     <select id="getById" resultType="Activity">
         SELECT * FROM  tbl_activity WHERE  id = #{id}
@@ -110,7 +98,6 @@
     </select>
 
     <insert id="save" >
-
        insert into tbl_activity(
 
             id,
@@ -122,12 +109,8 @@
             description,
             createTime,
             createBy
-
-
         )
-
         values(
-
             #{id},
             #{owner},
             #{name},
@@ -137,11 +120,22 @@
             #{description},
             #{createTime},
             #{createBy}
-
-
         )
-
     </insert>
+
+    <update id="update">
+        update tbl_activity set
+            owner = #{owner},
+            name = #{name},
+            startDate= #{startDate},
+            endDate= #{endDate},
+            cost= #{cost},
+            description= #{description},
+            editTime= #{editTime},
+            editBy= #{editBy}
+            WHERE id=#{id}
+
+    </update>
 
     <delete id="delete">
     delete from tbl_activity

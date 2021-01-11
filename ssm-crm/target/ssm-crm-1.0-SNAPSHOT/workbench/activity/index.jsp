@@ -37,22 +37,22 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 		})
 		//创建按钮绑定事件
 		$("#addBtn").click(function () {
-
 			$.ajax({
-				url:"workbench/activity/getUserList.do",
+				url:"user/getUserList",
 				type:"get",
 				dataType:"json",
 				success:function (data) {
 
-					if (data.success){
+					if (data.state == 1){
 						var html = "";
-						$.each(data.uList,function (i,n) {
+						$.each(data.data,function (i,n) {
 
 							html+="<option value='"+n.id+"'>"+n.name+"</option>";
 						})
 						$("#create-owner").html(html)
 						/*将当前的登录用户设置为默认*/
-                        $("#create-owner").val("${user.id}")
+                        $("#create-owner").val("${USER_SESSION.id}")
+
 					}else{
 						$("#msg").html(data.msg)
 					}
@@ -65,7 +65,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 
 		$("#saveBtn").click(function () {
             $.ajax({
-                url:"workbench/activity/save.do",
+                url:"activity/save",
 				data:{
                     "owner":$.trim($("#create-owner").val()),
                     "name":$.trim($("#create-name").val()),
@@ -77,12 +77,10 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                 type:"post",
                 dataType:"json",
                 success:function (data) {
-
                     if (data.state ==1){
 
                         //添加成功刷新列表
                         /*
-						*
 						* $("#activityPage").bs_pagination('getOption', 'currentPage'):
 						* 		操作后停留在当前页
 						*
@@ -91,13 +89,8 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 						*
 						* 这两个参数不需要我们进行任何的修改操作
 						* 	直接使用即可
-						*
-						*
-						*
 						* */
-
                         //做完添加操作后，应该回到第一页，维持每页展现的记录数
-
                         pageList(1,$("#activityPage").bs_pagination('getOption', 'rowsPerPage'));
 						//清空模态窗口中的数据
 						$("#activityAddForm")[0].reset();
@@ -114,7 +107,6 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 		pageList(1,2)
 
 		$("#searchBtn").click(function () {
-
 		    /*
 		    * 点击查询按钮时，先把搜索框的信息保存起来
 		    * */
@@ -138,7 +130,6 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
         /*
         动态生成的元素不能用普通的绑定事件进行操作
         $("input[name=xz]").click(function () {
-
         })*/
         /*
         * j动态生成的元素要以on的形式来出发
@@ -152,12 +143,9 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 		$("#deleteBtn").click(function () {
 			var $xz = $("input[name=xz]:checked")
 			if($xz.length == 0){
-
 				alert("请选择需要删除的记录")
 			}else {
-
 			    if(confirm("确定删除所选的记录吗")){
-
                     //拼接参数
                     var param = "";
                     //遍历$xz的dom对象
@@ -169,13 +157,12 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                     }
                     //alert(param)
                     $.ajax({
-                        url:"workbench/activity/delete.do",
+                        url:"activity/deleteAct",
                         data:param,
                         type:"post",
                         dataType:"json",
                         success:function (data) {
-
-                            if (data.success){
+                            if (data.state ==1){
                                 alert("删除成功")
                                 //添加成功刷新列表
                                 //删除成功后
@@ -191,7 +178,6 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 		})
 
         $("#editBtn").click(function () {
-
             var $xz = $("input[name=xz]:checked");
             if($xz.length == 0){
                 alert("请选择要修改的记录")
@@ -201,26 +187,25 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                 var id = $xz.val();
                 //alert(param)
                 $.ajax({
-                    url:"workbench/activity/getUserListAndActivity.do",
+                    url:"activity/getByIdAct",
                     data:{id:id},
                     type:"get",
                     dataType:"json",
                     success:function (data) {
                         var html = "<option></option>";
-                        $.each(data.uList,function (i,n) {
-
+                        var info = data.data
+                        $.each(info.uList,function (i,n) {
                             html+="<option value='"+n.id+"'>"+n.name+"</option>";
                         })
                         $("#edit-owner").html(html)
 
-						$("#edit-name").val(data.a.name)
-						$("#edit-owner").val(data.a.owner)
-						$("#edit-startDate").val(data.a.startDate)
-						$("#edit-endDate").val(data.a.endDate)
-						$("#edit-cost").val(data.a.cost)
-						$("#edit-description").val(data.a.description)
-						$("#edit-id").val(data.a.id)
-
+						$("#edit-name").val(info.a.name)
+						$("#edit-owner").val(info.a.owner)
+						$("#edit-startDate").val(info.a.startDate)
+						$("#edit-endDate").val(info.a.endDate)
+						$("#edit-cost").val(info.a.cost)
+						$("#edit-description").val(info.a.description)
+						$("#edit-id").val(info.a.id)
 
                         $("#editActivityModal").modal("show");
                     }
@@ -231,7 +216,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 		//修改
 		$("#updateBtn").click(function () {
             $.ajax({
-                url:"workbench/activity/update.do",
+                url:"activity/save",
                 data:{
                     "id":$.trim($("#edit-id").val()),
                     "owner":$.trim($("#edit-owner").val()),
@@ -245,12 +230,9 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                 dataType:"json",
                 success:function (data) {
 
-                    if (data.success){
-
+                    if (data.state==1){
                         /*
-
 							修改操作后，应该维持在当前页，维持每页展现的记录数
-
 						 */
                         pageList($("#activityPage").bs_pagination('getOption', 'currentPage')
                             ,$("#activityPage").bs_pagination('getOption', 'rowsPerPage'));
@@ -297,7 +279,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 ''
 						html+='<tr class="active"> '
 						html+='<td><input type="checkbox" name="xz" value="'+n.id+'" /></td> '
-						html += '<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href=\'workbench/activity/detail.do?id='+n.id+'\';">'+n.name+'</a></td>';
+						html += '<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href=\'activity/getByIdActivity?id='+n.id+'\';">'+n.name+'</a></td>';
 						html+='<td>'+n.owner+'</td>'
 						html+='<td>'+n.startDate+'</td>'
 						html+='<td>'+n.endDate+'</td>'

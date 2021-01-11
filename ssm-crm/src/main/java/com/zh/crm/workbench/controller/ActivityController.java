@@ -8,16 +8,13 @@ import com.zh.crm.vo.PaginationVo;
 import com.zh.crm.workbench.domain.Activity;
 import com.zh.crm.workbench.domain.ActivityRemark;
 import com.zh.crm.workbench.service.ActivityService;
-import com.zh.crm.workbench.service.impl.ActivityServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,195 +49,165 @@ public class ActivityController {
         return jsonResult;
     }
     /*
-    * 添加市场活动
+    * 添加/修改市场活动
     * */
     @RequestMapping("/save")
     @ResponseBody
     private JsonResult save(Activity activity,HttpServletRequest request) {
-        JsonResult jsonResult;
-        String id = UUIDUtil.getUUID();
-        String createTime = DateTimeUtil.getSysTime();
-        //创建人
+        String msg = "";
+        String state = "";
+        String id = activity.getId();
+        boolean flag = false;
+        //获取session中的登陆用户
         String createBy = ((User)request.getSession().getAttribute("USER_SESSION")).getName();
+        if (id!=null &&id!=""){ //修改
 
-        activity.setId(id);
-        activity.setCreateTime(createTime);
-        activity.setCreateBy(createBy);
+            String editTime = DateTimeUtil.getSysTime();
+            activity.setEditTime(editTime);
+            activity.setEditBy(createBy);
+            flag = as.update(activity);
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "修改成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "修改失败";
+            }
 
-        boolean flag = as.save(activity);
+        }else { // 添加
+            id = UUIDUtil.getUUID();
+            String createTime = DateTimeUtil.getSysTime();
+
+
+            activity.setId(id);
+            activity.setCreateTime(createTime);
+            activity.setCreateBy(createBy);
+            flag = as.save(activity);
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "添加成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "添加失败";
+            }
+        }
+
+        return new JsonResult(state,msg,"");
+    }
+
+    /*
+    * 活动详情，自动重定向到详情页
+    * */
+    @RequestMapping("/getByIdActivity")
+    private ModelAndView getByIdActivity(String id){
+        Activity a =  as.detail(id);
+        return new ModelAndView("/workbench/activity/detail","a",a);
+    }
+
+    /*
+     * 活动详情
+     * */
+    @RequestMapping("/getByIdAct")
+    @ResponseBody
+    private JsonResult getByIdAct(String id){
+        Map<String,Object> map =  as.getUserListAndActivity(id);
+        return  new JsonResult(JsonResult.STATE_SUCCESS,"success",map);
+    }
+
+    /*
+    * 删除活动，批量删除
+    * */
+    @RequestMapping("/deleteAct")
+    @ResponseBody
+    private JsonResult deleteAct(String[] ids){
+        JsonResult jsonResult;
+        boolean flag =  as.delete(ids);
         if (flag){
-            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"success","");
-        }else {
-            jsonResult = new JsonResult(JsonResult.STATE_ERROR,"保存失败","");
+            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"删除成功！","");
+        }else{
+            jsonResult  = new JsonResult(JsonResult.STATE_ERROR,"删除失败！","");
         }
         return jsonResult;
     }
-
-
-    /*private void updateRemark(HttpServletRequest request, HttpServletResponse response) {
-        String noteContent = request.getParameter("noteContent");
-        String id = request.getParameter("id");
-        String editTime = DateTimeUtil.getSysTime();
-        String editBy = ((User)request.getSession().getAttribute("user")).getName();
-        String editFlag = "1";
-
-        ActivityRemark ar = new ActivityRemark();
-        ar.setId(id);
-        ar.setNoteContent(noteContent);
-        ar.setCreateBy(editTime);
-        ar.setCreateTime(editBy);
-        ar.setEditFlag(editFlag);
-
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-
-        boolean flag =  as.updateRemark(ar);
-        Map<String,Object> map = new HashMap<String, Object>();
-        map.put("success",flag);
-        map.put("ar",ar);
-        PrintJson.printJsonObj(response,map);
-
-    }
-
-    private void saveRemark(HttpServletRequest request, HttpServletResponse response) {
-        String noteContent = request.getParameter("noteContent");
-        String activityId = request.getParameter("activityId");
-        String id = UUIDUtil.getUUID();
-
-        String createTime = DateTimeUtil.getSysTime();
-        //创建人
-        String createBy = ((User)request.getSession().getAttribute("user")).getName();
-        String editFlag = "0";
-        ActivityRemark ar = new ActivityRemark();
-        ar.setId(id);
-        ar.setActivityId(activityId);
-        ar.setNoteContent(noteContent);
-        ar.setCreateBy(createBy);
-        ar.setCreateTime(createTime);
-        ar.setEditFlag(editFlag);
-
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-
-        boolean flag =  as.saveRemark(ar);
-        Map<String,Object> map = new HashMap<String, Object>();
-        map.put("success",flag);
-        map.put("ar",ar);
-        PrintJson.printJsonObj(response,map);
-    }
-
-    private void deleteRemark(HttpServletRequest request, HttpServletResponse response) {
-        String id = request.getParameter("id");
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-        boolean flag = as.deleteRemark(id);
-        PrintJson.printJsonFlag(response,flag);
-    }
-
-    private void getRemarkListByAid(HttpServletRequest request, HttpServletResponse response) {
-        String activityId = request.getParameter("activityId");
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+    /*
+    * getRemarkListByAid
+    * 获取备注列表
+    * */
+    @RequestMapping("/getRemarkListByAid")
+    @ResponseBody
+    private JsonResult getRemarkListByAid(String activityId){
+        JsonResult jsonResult;
         List<ActivityRemark> rList =  as.getRemarkListByAid(activityId);
-        PrintJson.printJsonObj(response,rList);
+        if (rList!=null && !rList.isEmpty()){
+            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"success",rList);
+        }else {
+            jsonResult  = new JsonResult(JsonResult.STATE_ERROR,"没有查询到数据",rList);
+        }
+        return  jsonResult;
     }
 
-    private void detail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    /*
+    * 添加保存，修改活动备注
+    * */
+    @RequestMapping("/saveRemark")
+    @ResponseBody
+    private JsonResult saveRemark(ActivityRemark ar,HttpServletRequest request){
+        String msg = "";
+        String state = "";
+        String id = ar.getId();
+        boolean flag = false;
+        //获取session中的登陆用户
+        String user = ((User)request.getSession().getAttribute("USER_SESSION")).getName();
+        String time = DateTimeUtil.getSysTime();
+        if (id!=null &&id!=""){ //修改
+            ar.setEditBy(user);
+            ar.setEditTime(time);
+            ar.setEditFlag("1");
+            flag =  as.updateRemark(ar);
 
-        String id = request.getParameter("id");
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-        Activity a =  as.detail(id);
-        request.setAttribute("a",a);
-        //转发
-        request.getRequestDispatcher("/workbench/activity/detail.jsp").forward(request,response);
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "修改成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "修改失败";
+            }
+
+        }else { // 添加
+            id = UUIDUtil.getUUID();
+            String editFlag = "0";
+            ar.setId(id);
+            ar.setCreateBy(user);
+            ar.setCreateTime(time);
+            ar.setEditFlag(editFlag);
+            flag =  as.saveRemark(ar);
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "添加成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "添加失败";
+            }
+        }
+
+        return new JsonResult(state,msg,ar);
     }
 
-    private void update(HttpServletRequest request, HttpServletResponse response) {
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-        String id = request.getParameter("id");
-        String owner = request.getParameter("owner");
-        String name = request.getParameter("name");
-        String startDate = request.getParameter("startDate");
-        String endDate = request.getParameter("endDate");
-        String cost = request.getParameter("cost");
-        String description = request.getParameter("description");
-
-        String editTime = DateTimeUtil.getSysTime();
-        //创建人
-        String editBy = ((User)request.getSession().getAttribute("user")).getName();
-
-        Activity a = new Activity();
-        a.setId(id);
-        a.setOwner(owner);
-        a.setName(name);
-        a.setStartDate(startDate);
-        a.setEndDate(endDate);
-        a.setCost(cost);
-        a.setDescription(description);
-        a.setEditTime(editTime);
-        a.setEditBy(editBy);
-
-
-        boolean flag = as.update(a);
-
-        PrintJson.printJsonFlag(response,flag);
+    /*
+     * 删除活动备注
+     * */
+    @RequestMapping("/deleteRemark")
+    @ResponseBody
+    private JsonResult deleteRemark(String id){
+        JsonResult jsonResult;
+        boolean flag = as.deleteRemark(id);
+        if (flag){
+            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"删除成功！","");
+        }else{
+            jsonResult  = new JsonResult(JsonResult.STATE_ERROR,"删除失败！","");
+        }
+        return jsonResult;
     }
-
-    private void getUserListAndActivity(HttpServletRequest request, HttpServletResponse response) {
-
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-
-        String id = request.getParameter("id");
-        Map<String,Object> map =  as.getUserListAndActivity(id);
-        PrintJson.printJsonObj(response,map);
-    }
-
-    *//**
-     * 删除
-     *@Description 张浩
-     *@param
-     * @param request
-     * @param response
-     *@return void
-     *@date 2020-12-7 15:12
-     *@auther Administrator
-     *//*
-    private void delete(HttpServletRequest request, HttpServletResponse response) {
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-        String ids[] = request.getParameterValues("id");
-        boolean flag =  as.delete(ids);
-        PrintJson.printJsonFlag(response,flag);
-    }
-
-
-    *//*
-    * 添加市场活动
-    * *//*
-    private void save(HttpServletRequest request, HttpServletResponse response) {
-        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
-        String id = UUIDUtil.getUUID();
-        String owner = request.getParameter("owner");
-        String name = request.getParameter("name");
-        String startDate = request.getParameter("startDate");
-        String endDate = request.getParameter("endDate");
-        String cost = request.getParameter("cost");
-        String description = request.getParameter("description");
-        String createTime = DateTimeUtil.getSysTime();
-        //创建人
-        String createBy = ((User)request.getSession().getAttribute("user")).getName();
-
-        Activity a = new Activity();
-        a.setId(id);
-        a.setOwner(owner);
-        a.setName(name);
-        a.setStartDate(startDate);
-        a.setEndDate(endDate);
-        a.setCost(cost);
-        a.setDescription(description);
-        a.setCreateTime(createTime);
-        a.setCreateBy(createBy);
-
-
-        boolean flag = as.save(a);
-
-        PrintJson.printJsonFlag(response,flag);
-    }*/
 
 
 
