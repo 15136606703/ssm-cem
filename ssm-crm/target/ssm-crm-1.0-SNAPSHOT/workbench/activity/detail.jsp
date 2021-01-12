@@ -123,7 +123,32 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 
             })
         })
-	});
+
+        $("#editBtn").click(function () {
+            $.ajax({
+                url:"user/getUserList",
+                type:"get",
+                dataType:"json",
+                success:function (data) {
+
+                    if (data.state == 1){
+                        var html = "";
+                        $.each(data.data,function (i,n) {
+                            html+="<option value='"+n.name+"'>"+n.name+"</option>";
+                        })
+                        $("#edit-marketActivityOwner").html(html)
+                        /*将当前的登录用户设置为默认*/
+                        $("#edit-marketActivityOwner").val("${a.owner}")
+
+                    }else{
+                        $("#msg").html(data.msg)
+                    }
+                }
+            })
+            $("#editActivityModal").modal("show");
+        })
+
+    });
 	function showRemarkList() {
 
 		$.ajax({
@@ -226,39 +251,37 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
                             <label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
                             <div class="col-sm-10" style="width: 300px;">
                                 <select class="form-control" id="edit-marketActivityOwner">
-                                    <option>zhangsan</option>
-                                    <option>lisi</option>
-                                    <option>wangwu</option>
+
                                 </select>
                             </div>
                             <label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-marketActivityName" value="发传单">
+                                <input type="text" class="form-control" id="edit-marketActivityName" value="${a.name}">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-startTime" value="2020-10-10">
+                                <input type="text" class="form-control" id="edit-startTime" value="${a.startDate}">
                             </div>
                             <label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-endTime" value="2020-10-20">
+                                <input type="text" class="form-control" id="edit-endTime" value="${a.endDate}">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-cost" class="col-sm-2 control-label">成本</label>
                             <div class="col-sm-10" style="width: 300px;">
-                                <input type="text" class="form-control" id="edit-cost" value="5,000">
+                                <input type="text" class="form-control" id="edit-cost" value="${a.cost}">
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="edit-describe" class="col-sm-2 control-label">描述</label>
                             <div class="col-sm-10" style="width: 81%;">
-                                <textarea class="form-control" rows="3" id="edit-describe">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
+                                <textarea class="form-control" rows="3" id="edit-describe">${a.description}</textarea>
                             </div>
                         </div>
 
@@ -284,7 +307,7 @@ String basePath = request.getScheme()+ "://" + request.getServerName() + ":" + r
 			<h3>市场活动-${a.name} <small>${a.startDate} ~ ${a.endDate}</small></h3>
 		</div>
 		<div style="position: relative; height: 50px; width: 250px;  top: -72px; left: 700px;">
-			<button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span class="glyphicon glyphicon-edit"></span> 编辑</button>
+			<button type="button" class="btn btn-default" data-toggle="modal" id="editBtn"><span class="glyphicon glyphicon-edit"></span> 编辑</button>
 			<button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除</button>
 		</div>
 	</div>
