@@ -21,5 +21,5 @@ public interface ClueService {
 
     boolean update(Clue a);
 
-    Clue detail(String id);
+    Clue getById(String id);
 }

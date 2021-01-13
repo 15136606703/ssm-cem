@@ -102,11 +102,11 @@ public class ClueController {
      * 活动详情，自动重定向到详情页
      * */
     @RequestMapping("/getByIdClue")
-    private ModelAndView getByIdClue(String id){
-        Clue clue =  clueService.detail(id);
-        return new ModelAndView("/workbench/clue/detail","clue",clue);
+    @ResponseBody
+    private JsonResult getByIdClue(String id){
+        Clue clue =  clueService.getById(id);
+        return new JsonResult(JsonResult.STATE_SUCCESS,"success",clue);
     }
-
 
     /*
      * 删除活动，批量删除

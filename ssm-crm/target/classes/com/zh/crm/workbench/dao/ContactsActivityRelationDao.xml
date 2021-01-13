@@ -4,8 +4,34 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.zh.crm.workbench.dao.ContactsActivityRelationDao">
-	
-  	
+
+    <insert id="save">
+        insert into tbl_contacts_activity_relation (id,clueId,activityId )
+        value (#{id},#{clueId},#{clueId})
+    </insert>
+
+    <delete id="delete">
+        delete from tbl_contacts_activity_relation
+        where id = #{id}
+    </delete>
+
+    <select id="getConActList" resultType="ContactsActivityRelation">
+        select
+            c.id,
+            a.name as aname ,
+            a.startDate as startDate,
+            a.endDate as endDate,
+            u.name as uname
+        from  tbl_contacts_activity_relation c
+        left join tbl_activity a
+        on c.activityId = a.id
+        left join  tbl_user u
+        on u.id = c.owner
+
+        where
+        clueId = #{clueId}
+
+    </select>
 </mapper>
 
 
