@@ -1,10 +1,13 @@
 package com.zh.crm.workbench.service.impl;
 
 import com.zh.crm.vo.PaginationVo;
+import com.zh.crm.workbench.dao.ClueActivityRelationDao;
 import com.zh.crm.workbench.dao.ClueDao;
 import com.zh.crm.workbench.dao.ClueRemarkDao;
 import com.zh.crm.workbench.domain.Activity;
+import com.zh.crm.workbench.domain.ActivityRemark;
 import com.zh.crm.workbench.domain.Clue;
+import com.zh.crm.workbench.domain.ClueRemark;
 import com.zh.crm.workbench.service.ClueService;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,9 @@ public class ClueServiceImpl implements ClueService {
     private ClueDao clueDao;
     @Resource
     private ClueRemarkDao clueRemarkDao;
+    @Resource
+    private ClueActivityRelationDao clueActivityRelationDao;
+
     @Override
     public boolean save(Clue clue) {
         boolean flag = false;
@@ -59,11 +65,17 @@ public class ClueServiceImpl implements ClueService {
             flag = false;
         }
         //查询要删除的关联市场数
+        int count3 = clueActivityRelationDao.getCountByCids(ids);
 
-        int count3 = clueDao.delete(ids);
-        if (count3!=ids.length){
+        int count4 = clueActivityRelationDao.deleteByCids(ids);
+        if (count3!= count4) {
             flag = false;
         }
+        int count5 = clueDao.delete(ids);
+        if (count5!=ids.length){
+            flag = false;
+        }
+
         return flag;
 
     }
@@ -75,6 +87,49 @@ public class ClueServiceImpl implements ClueService {
 
     @Override
     public Clue getById(String id) {
-        return null;
+        Clue clue =  clueDao.getById(id);
+        return clue;
     }
+
+    @Override
+    public List<ClueRemark> getRemarkListByCid(String clueId) {
+
+        List<ClueRemark> rList =  clueRemarkDao.getRemarkListByCid(clueId);
+        return rList;
+    }
+
+    @Override
+    public boolean deleteRemark(String id) {
+        boolean flag = true;
+
+        int count = clueRemarkDao.deleteById(id);
+        if(count!=1){
+            flag = false;
+        }
+        return flag;
+    }
+
+    @Override
+    public boolean saveRemark(ClueRemark cr) {
+        boolean flag = true;
+        int count = clueRemarkDao.saveRemark(cr);
+        if (count!=1){
+            flag = false;
+        }
+        return flag;
+    }
+
+    @Override
+    public boolean updateRemark(ClueRemark cr) {
+
+        boolean flag = true;
+        int count = clueRemarkDao.updateRemark(cr);
+        if (count!=1){
+
+            flag = false;
+        }
+        return flag;
+    }
+
+
 }

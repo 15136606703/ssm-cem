@@ -2,8 +2,11 @@ package com.zh.crm.workbench.service;
 
 import com.zh.crm.vo.PaginationVo;
 import com.zh.crm.workbench.domain.Activity;
+import com.zh.crm.workbench.domain.ActivityRemark;
 import com.zh.crm.workbench.domain.Clue;
+import com.zh.crm.workbench.domain.ClueRemark;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,4 +25,12 @@ public interface ClueService {
     boolean update(Clue a);
 
     Clue getById(String id);
+
+    List<ClueRemark> getRemarkListByCid(String clueId);
+
+    boolean deleteRemark(String id);
+
+    boolean saveRemark(ClueRemark cr);
+
+    boolean updateRemark(ClueRemark cr);
 }

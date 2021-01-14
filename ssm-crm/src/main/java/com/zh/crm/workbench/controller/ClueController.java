@@ -5,7 +5,9 @@ import com.zh.crm.utils.DateTimeUtil;
 import com.zh.crm.utils.UUIDUtil;
 import com.zh.crm.vo.JsonResult;
 import com.zh.crm.vo.PaginationVo;
+import com.zh.crm.workbench.domain.ActivityRemark;
 import com.zh.crm.workbench.domain.Clue;
+import com.zh.crm.workbench.domain.ClueRemark;
 import com.zh.crm.workbench.service.ClueService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,8 +28,10 @@ import java.util.Map;
 @Controller
 @RequestMapping("/clue")
 public class ClueController {
+
     @Resource
     private ClueService clueService;
+
     @RequestMapping("/getCluePageList")
     @ResponseBody
     private JsonResult getCluePageList(Integer pageNum,Integer pageSize,String owner,String name,String startDate,String endDate){
@@ -99,7 +104,7 @@ public class ClueController {
     }
 
     /*
-     * 活动详情，自动重定向到详情页
+     * 活动详情
      * */
     @RequestMapping("/getByIdClue")
     @ResponseBody
@@ -123,4 +128,87 @@ public class ClueController {
         }
         return jsonResult;
     }
+
+    /*
+     * getRemarkListByCid
+     * 获取线索备注列表
+     * */
+    @RequestMapping("/getRemarkListByCid")
+    @ResponseBody
+    private JsonResult getRemarkListByCid(String clueId){
+        JsonResult jsonResult;
+        List<ClueRemark> rList =  clueService.getRemarkListByCid(clueId);
+        if (rList!=null && !rList.isEmpty()){
+            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"success",rList);
+        }else {
+            jsonResult  = new JsonResult(JsonResult.STATE_ERROR,"没有查询到数据",rList);
+        }
+        return  jsonResult;
+    }
+
+    /*
+     * 添加保存，修改活动备注
+     * */
+    @RequestMapping("/saveRemark")
+    @ResponseBody
+    private JsonResult saveRemark(ClueRemark ar,HttpServletRequest request){
+        String msg = "";
+        String state = "";
+        String id = ar.getId();
+        boolean flag = false;
+        //获取session中的登陆用户
+        String user = ((User)request.getSession().getAttribute("USER_SESSION")).getName();
+        String time = DateTimeUtil.getSysTime();
+        if (id!=null &&id!=""){ //修改
+            ar.setEditBy(user);
+            ar.setEditTime(time);
+            ar.setEditFlag("1");
+            flag =  clueService.updateRemark(ar);
+
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "修改成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "修改失败";
+            }
+
+        }else { // 添加
+            id = UUIDUtil.getUUID();
+            String editFlag = "0";
+            ar.setId(id);
+            ar.setCreateBy(user);
+            ar.setCreateTime(time);
+            ar.setEditFlag(editFlag);
+            flag =  clueService.saveRemark(ar);
+            if (flag){
+                state = JsonResult.STATE_SUCCESS;
+                msg = "添加成功";
+            }else {
+                state = JsonResult.STATE_ERROR;
+                msg = "添加失败";
+            }
+        }
+
+        return new JsonResult(state,msg,ar);
+    }
+
+    /*
+     * 删除活动备注
+     * */
+    @RequestMapping("/deleteRemark")
+    @ResponseBody
+    private JsonResult deleteRemark(String id){
+        JsonResult jsonResult;
+        boolean flag = clueService.deleteRemark(id);
+        if (flag){
+            jsonResult = new JsonResult(JsonResult.STATE_SUCCESS,"删除成功！","");
+        }else{
+            jsonResult  = new JsonResult(JsonResult.STATE_ERROR,"删除失败！","");
+        }
+        return jsonResult;
+    }
+
+
+
 }

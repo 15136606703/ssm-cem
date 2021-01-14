@@ -4,9 +4,56 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.zh.crm.workbench.dao.ClueActivityRelationDao">
-	
-	
-  	
+
+    <insert id="save">
+        insert into tbl_clue_activity_relation (id,clueId,activityId )
+        value (#{id},#{clueId},#{clueId})
+    </insert>
+
+    <delete id="delete">
+        delete from tbl_clue_activity_relation
+        where id = #{id}
+    </delete>
+
+    <select id="getConActList" resultType="ClueActivityRelation">
+        select
+            c.id,
+            a.name as aname ,
+            a.startDate as startDate,
+            a.endDate as endDate,
+            u.name as uname
+        from  tbl_clue_activity_relation c
+        left join tbl_activity a
+        on c.activityId = a.id
+        left join  tbl_user u
+        on u.id = c.owner
+
+        where
+        clueId = #{clueId}
+
+    </select>
+
+    <select id="getCountByCids" resultType="int">
+        select
+        count(*)
+        from  tbl_clue_activity_relation
+        where
+        clueId in
+        <foreach collection="array" item="cid" open="(" close=")" separator=",">
+            #{cid}
+        </foreach>
+    </select>
+
+    <delete id="deleteByCids">
+        delete from tbl_clue_activity_relation
+        where clueId in
+        <foreach collection="array" item="aid" open="(" close=")" separator=",">
+            #{aid}
+        </foreach>
+    </delete>
+
+
+
 </mapper>
 
 
